@@ -13,6 +13,7 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 TABLE = "jobs"
+
 def test_hello():
     """
     Test the /hello POST endpoint.

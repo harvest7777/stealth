@@ -1,11 +1,12 @@
+import asyncio
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client
+from contextlib import asynccontextmanager
 import os
 import boto3
 import json
 from dotenv import load_dotenv
-import asyncio
 
 from utils import JobFormSchema
 from supabase_realtime import supabase_realtime_handler
@@ -15,6 +16,7 @@ load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
 AWS_REGION = os.getenv("AWS_REGION")
 SQS_QUEUE_URL = os.getenv("SQS_QUEUE_URL")
 
@@ -27,9 +29,52 @@ sqs = boto3.client(
     region_name=AWS_REGION
 )
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    asyncio.create_task(dummy_poll_sqs())
+    yield
 
+app = FastAPI(lifespan=lifespan)
+
+async def dummy_poll_sqs():
+    """
+    Continuously poll the SQS queue for new messages and process them.
+    This is just a dummy so we will use sleep instead of calling modal.
+    """
+    print("✅ SQS Polling started...")
+    while True:
+        try:
+            response = sqs.receive_message(
+                QueueUrl=SQS_QUEUE_URL,
+                MaxNumberOfMessages=1,
+                WaitTimeSeconds=10  # Long polling for efficiency
+            )
+
+            messages = response.get("Messages", [])
+            if messages:
+                for message in messages:
+                    body = json.loads(message["Body"])
+                    print("📩 Received message:", body)
+
+                    job_id = body.get("job_id")
+
+                    # NOTE: no need to await here, supabase's python client is blocking synchronous
+                    supabase.table("jobs").update({"status": "training"}).eq("id", job_id).execute()
+                    await asyncio.sleep(8)  # Simulate processing
+                    supabase.table("jobs").update({"status": "completed"}).eq("id", job_id).execute()
+
+                    # Delete message after processing
+                    sqs.delete_message(
+                        QueueUrl=SQS_QUEUE_URL,
+                        ReceiptHandle=message["ReceiptHandle"]
+                    )
+                    print("✅ Message processed and deleted.")
+            else:
+                print("No messages...")
+        except Exception as e:
+            print("❌ Polling error:", e)
 # this is only because I'm trying to prototype
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],          # Allow all origins
@@ -37,11 +82,6 @@ app.add_middleware(
     allow_methods=["*"],          # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],          # Allow all headers
 )
-
-@app.get("/users")
-def get_users():
-    response = supabase.table("tasks").select("*").execute()
-    return response.data
 
 @app.get("/jobs")
 def get_jobs():
@@ -77,7 +117,3 @@ def submit_job(form_data: JobFormSchema):
     except Exception as e:
         return {"error": str(e)}
 
-
-@app.post("/hello")
-def say_hi():
-    return {"message": "hi"}
