@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import { 
   Button 
 } from "@/components/ui/button";
@@ -23,6 +23,9 @@ import {
 import { BACKEND_URL } from "@/lib/config";
 import { useJobStore } from "@/stores/useJobsStore";
 
+type props = {
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}
 type FormData = {
   dataset_repo_id: string;
   model_id: string;
@@ -35,7 +38,7 @@ type FormData = {
   batch_size?: number | null;
 };
 
-export default function JobForm() {
+export default function JobForm({ setOpen }: props) {
   const [form, setForm] = useState<FormData>({
     dataset_repo_id: "DanqingZ/filtered_pick_yellow_pink",
     model_id: "lerobot/pi0",
@@ -47,6 +50,7 @@ export default function JobForm() {
     log_freq: 100,
     batch_size: null,
   });
+  const [loading, setLoading] = useState(false);
 
   const {addJob} = useJobStore();
 
@@ -54,10 +58,11 @@ export default function JobForm() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setLoading(true);
     // Hit the fastapi backend
-    fetch(`${BACKEND_URL}/submit-job`, {
+    await fetch(`${BACKEND_URL}/submit-job`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -74,14 +79,16 @@ export default function JobForm() {
         const newJob: Job = data.job as Job;
         console.log("New Job:", newJob);
         addJob(newJob);
+        setOpen(false);
       })
       .catch((error) => {
         console.error("Error submitting job:", error);
       });
+      setLoading(false);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4">
+    <form onSubmit={handleSubmit} className="space-y-4 w-full mx-auto p-4">
       <div>
         <Label htmlFor="dataset_repo_id">Dataset Repo ID</Label>
         <Input
@@ -202,7 +209,7 @@ export default function JobForm() {
         />
       </div>
 
-      <Button type="submit" className="w-full">
+      <Button type="submit" disabled={loading} className="w-full">
         Submit Job
       </Button>
     </form>

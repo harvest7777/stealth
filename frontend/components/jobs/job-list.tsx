@@ -2,16 +2,18 @@ import { useJobStore } from "@/stores/useJobsStore";
 import Spinner from "../ui/spinner";
 import JobDisplay from "./job-display";
 
-export default function JobList () {
+type props = {
+    className?: string;
+}
+export default function JobList ({className}: props ) {
     const {jobs} = useJobStore();
 
     return (
-        <div>
-            <h1>Jobs</h1>
+        <div className={`flex flex-col ${className}`}>
             {jobs ? (
-                <ul>
+                <ul className="divide-y divide-gray-200">
                     {jobs.map(job => (
-                        <JobDisplay key={job.id} job={job} />
+                        <JobDisplay className="py-4" key={job.id} job={job} />
                     ))}
                 </ul>
             ) : (

@@ -7,7 +7,8 @@ import {
 } from "@/components/ui/popover"
 
 type props = {
-    job: Job
+    job: Job;
+    className?: string;
 }
 
 const statusColors: Record<string, { bg: string; text: string }> = {
@@ -17,11 +18,13 @@ const statusColors: Record<string, { bg: string; text: string }> = {
   failed: { bg: "bg-red-100", text: "text-red-700" },
 };
 
-export default function JobDisplay({job}:props) {
+export default function JobDisplay({job, className}:props) {
     return (
-        <div className="flex gap-x-2 p-2 items-center align-middle">
-            <h2>{job.policy_name}</h2>
+        <div className={`flex items-center align-middle ${className}`}>
+        <span className="w-2/3">{job.policy_name}</span>
+        <div className="w-1/3">
             <span className={`px-2 rounded-md ${statusColors[job.status].bg} ${statusColors[job.status].text}`}>{job.status}</span>
+        </div>
         <Popover>
         <PopoverTrigger>
             <IoIosInformationCircleOutline className="text-2xl hover:cursor-pointer"/>

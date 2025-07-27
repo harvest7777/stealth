@@ -4,6 +4,7 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 
 import { useJobStore } from "@/stores/useJobsStore"
 import { useEffect } from "react"
+import NewJobDialog from "@/components/jobs/new-job-dialog";
 export default function ManageJobsPage() {
     const { setJobs, initialized, updateJob } = useJobStore()
 
@@ -45,10 +46,21 @@ export default function ManageJobsPage() {
     }, [initialized, setJobs])
 
     return (
-        <div>
-            <p>Status: {ReadyState[readyState]}</p>
-            <JobList/>
-            <JobForm />
+        <div className="px-10 flex flex-col gap-6 h-screen">
+            <div className="outline outine-1 outine-input rounded-md p-2 w-fit text-muted-foreground">
+                <h2 className="font-bold">Debug Info</h2>
+                <span>WebSocket Connection: {ReadyState[readyState]}</span>
+            </div>
+
+            <div className="p-2 outline-1 outline-input rounded-md">
+                <h2 className="font-bold">Your Tools</h2>
+                <NewJobDialog/>
+            </div>
+
+            <div className="p-2 outline-1 outline-input rounded-md max-h-1/2 ">
+                <h2 className="font-bold">Job Info</h2>
+                <JobList className="h-full overflow-scroll scrollbar-custom"/>
+            </div>
         </div>
     )
 }
