@@ -5,9 +5,9 @@ from supabase import create_client
 from contextlib import asynccontextmanager
 import os
 import boto3
+import time
 import json
 from dotenv import load_dotenv
-
 from utils import JobFormSchema
 from supabase_realtime import supabase_realtime_handler
 
@@ -31,12 +31,15 @@ sqs = boto3.client(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    asyncio.create_task(dummy_poll_sqs())
+    loop = asyncio.get_event_loop()
+    # since boto3 is blocking, we run the SQS polling in a separate thread
+    loop.run_in_executor(None, dummy_poll_sqs)
     yield
 
 app = FastAPI(lifespan=lifespan)
+# app = FastAPI() 
 
-async def dummy_poll_sqs():
+def dummy_poll_sqs():
     """
     Continuously poll the SQS queue for new messages and process them.
     This is just a dummy so we will use sleep instead of calling modal.
@@ -60,7 +63,7 @@ async def dummy_poll_sqs():
 
                     # NOTE: no need to await here, supabase's python client is blocking synchronous
                     supabase.table("jobs").update({"status": "training"}).eq("id", job_id).execute()
-                    await asyncio.sleep(8)  # Simulate processing
+                    time.sleep(8)  # Simulate processing
                     supabase.table("jobs").update({"status": "completed"}).eq("id", job_id).execute()
 
                     # Delete message after processing
