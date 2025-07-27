@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import asyncio
 
 from utils import JobFormSchema
+from supabase_realtime import supabase_realtime_handler
 
 # Load environment variables
 load_dotenv()
@@ -49,16 +50,10 @@ def get_jobs():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    async def send_periodic_messages():
-        while True:
-            await websocket.send_text("Hello from server!")
-            await asyncio.sleep(5)
     await websocket.accept()
-
-    send_task = asyncio.create_task(send_periodic_messages())
-    while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}")
+    # forward everything from supabase to client
+    # we must do it through the fastapi because the client NEVER connects to supabase directly
+    await supabase_realtime_handler(websocket)
 
 
 @app.post("/submit-job")
