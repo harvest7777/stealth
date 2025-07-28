@@ -15,7 +15,21 @@ def square(x):
 @app.function(image=image,
               secrets=[modal.Secret.from_name("custom-secret")]
 )
-def supabase_function():
+def train(job_id):
+    """
+    """
+    from supabase import create_client
+    SUPABASE_URL = os.environ["SUPABASE_URL"]
+    SUPABASE_KEY = os.environ["SUPABASE_KEY"]
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+    job = supabase.table("jobs").select("*").eq("id", job_id).single().execute()
+    print(job)
+
+@app.function(image=image,
+              secrets=[modal.Secret.from_name("custom-secret")]
+)
+def dummy_supabase_function():
     """
     This is just a dummy function to demonstrate training some job, taking 20s total.
     """
@@ -25,9 +39,6 @@ def supabase_function():
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
     job_id = "6a5223d2-4d44-4b4b-be54-ba86bbbbdd72"
 
-    supabase.table("jobs").update({"status": "pending"}).eq("id", job_id).execute()
-    print(f"Dummy function processing")
-    sleep(5)
     supabase.table("jobs").update({"status": "training"}).eq("id", job_id).execute()
     sleep(15)
     supabase.table("jobs").update({"status": "completed"}).eq("id", job_id).execute()

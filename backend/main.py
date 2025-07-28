@@ -10,6 +10,7 @@ import json
 from dotenv import load_dotenv
 from utils import JobFormSchema
 from supabase_realtime import supabase_realtime_handler
+import modal
 
 # Load environment variables
 load_dotenv()
@@ -33,16 +34,15 @@ sqs = boto3.client(
 async def lifespan(app: FastAPI):
     loop = asyncio.get_event_loop()
     # since boto3 is blocking, we run the SQS polling in a separate thread
-    loop.run_in_executor(None, dummy_poll_sqs)
+    loop.run_in_executor(None, poll_sqs)
     yield
 
 app = FastAPI(lifespan=lifespan)
 # app = FastAPI() 
 
-def dummy_poll_sqs():
+def poll_sqs():
     """
     Continuously poll the SQS queue for new messages and process them.
-    This is just a dummy so we will use sleep instead of calling modal.
     """
     print("✅ SQS Polling started...")
     while True:
@@ -60,11 +60,14 @@ def dummy_poll_sqs():
                     print("📩 Received message:", body)
 
                     job_id = body.get("job_id")
+                    is_test = body.get("is_test", False)
 
-                    # NOTE: no need to await here, supabase's python client is blocking synchronous
-                    supabase.table("jobs").update({"status": "training"}).eq("id", job_id).execute()
-                    time.sleep(8)  # Simulate processing
-                    supabase.table("jobs").update({"status": "completed"}).eq("id", job_id).execute()
+                    if is_test:
+                        f = modal.Function.from_name("example-get-started", "dummy_supabase_function")
+                        f.remote()
+                    else:
+                        f = modal.Function.from_name("example-get-started", "train")
+                        f.remote(job_id)
 
                     # Delete message after processing
                     sqs.delete_message(
