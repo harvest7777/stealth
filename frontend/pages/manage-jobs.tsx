@@ -1,4 +1,3 @@
-import JobForm from "@/components/jobs/job-form"
 import JobList from "@/components/jobs/job-list"
 import useWebSocket, { ReadyState } from "react-use-websocket";
 

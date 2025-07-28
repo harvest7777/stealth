@@ -37,8 +37,8 @@ async def lifespan(app: FastAPI):
     loop.run_in_executor(None, poll_sqs)
     yield
 
-app = FastAPI(lifespan=lifespan)
-# app = FastAPI() 
+# app = FastAPI(lifespan=lifespan)
+app = FastAPI() 
 
 def poll_sqs():
     """
