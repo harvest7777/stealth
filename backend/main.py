@@ -30,56 +30,9 @@ sqs = boto3.client(
     region_name=AWS_REGION
 )
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    loop = asyncio.get_event_loop()
-    # since boto3 is blocking, we run the SQS polling in a separate thread
-    loop.run_in_executor(None, poll_sqs)
-    yield
 
 # app = FastAPI(lifespan=lifespan)
 app = FastAPI() 
-
-def poll_sqs():
-    """
-    Continuously poll the SQS queue for new messages and process them.
-    """
-    print("✅ SQS Polling started...")
-    while True:
-        try:
-            response = sqs.receive_message(
-                QueueUrl=SQS_QUEUE_URL,
-                MaxNumberOfMessages=1,
-                WaitTimeSeconds=10  # Long polling for efficiency
-            )
-
-            messages = response.get("Messages", [])
-            if messages:
-                for message in messages:
-                    body = json.loads(message["Body"])
-                    print("📩 Received message:", body)
-
-                    job_id = body.get("job_id")
-                    is_test = body.get("is_test", False)
-
-                    if is_test:
-                        f = modal.Function.from_name("example-get-started", "dummy_supabase_function")
-                        f.remote()
-                    else:
-                        f = modal.Function.from_name("example-get-started", "train")
-                        f.remote(job_id)
-
-                    # Delete message after processing
-                    sqs.delete_message(
-                        QueueUrl=SQS_QUEUE_URL,
-                        ReceiptHandle=message["ReceiptHandle"]
-                    )
-                    print("✅ Message processed and deleted.")
-            else:
-                print("No messages...")
-        except Exception as e:
-            print("❌ Polling error:", e)
-# this is only because I'm trying to prototype
 
 app.add_middleware(
     CORSMiddleware,
@@ -96,10 +49,13 @@ def get_jobs():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    # forward everything from supabase to client
-    # we must do it through the fastapi because the client NEVER connects to supabase directly
-    await supabase_realtime_handler(websocket)
+    try:
+        await websocket.accept()
+        # forward everything from supabase to client
+        # we must do it through the fastapi because the client NEVER connects to supabase directly
+        await supabase_realtime_handler(websocket)
+    except Exception as e:
+        print(f"WebSocket error: {e}")
 
 
 @app.post("/submit-job")

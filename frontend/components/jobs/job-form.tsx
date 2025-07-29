@@ -40,14 +40,14 @@ type FormData = {
 
 export default function JobForm({ setOpen }: props) {
   const [form, setForm] = useState<FormData>({
-    dataset_repo_id: "DanqingZ/filtered_pick_yellow_pink",
+    dataset_repo_id: "danaaubakirova/koch_test",
     model_id: "lerobot/pi0",
     gpu_type: "A100",
-    policy_name: "Job name",
+    policy_name: "modal_pi0_test",
     mode: "fine_tuning",
     steps: 20,
-    save_freq: 200000,
-    log_freq: 100,
+    save_freq: 100000,
+    log_freq: 5,
     batch_size: null,
   });
   const [loading, setLoading] = useState(false);
@@ -97,7 +97,7 @@ export default function JobForm({ setOpen }: props) {
           value={form.dataset_repo_id}
           onChange={(e) => handleChange("dataset_repo_id", e.target.value)}
           required
-          placeholder="e.g. DanqingZ/filtered_pick_yellow_pink"
+          placeholder="e.g. danaaubakirova/koch_test"
         />
       </div>
 

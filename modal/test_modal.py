@@ -1,20 +1,5 @@
 import modal
 
-def test_supabase_dummy_function():
-    """
-    Test the dummy Supabase function that simulates job training.
-    """
-    # Call the dummy function
-    f = modal.Function.from_name("example-get-started", "dummy_supabase_function")
-    print(f.remote())
-
-def test_train_function(job_id):
-    """
-    Test the train function with a mock job ID.
-    """
-    f = modal.Function.from_name("example-get-started", "train")
-    print(f.remote(job_id))
-
 def test_training():
     f = modal.Function.from_name("lerobot-finetune-app", "run_lerobot_a100")
 
