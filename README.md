@@ -34,7 +34,7 @@ To deploy this project using [Modal](https://modal.com/), you must first ensure 
 
 This repository contains shared functionality required for job execution.
 
-####After deploying on Modal, you can deploy to AWS.
+#### After deploying on Modal, you can deploy to AWS.
 1. Build and tag the Docker image.
 2. Push it to Amazon ECR.
 3. Deploy it via ECS using a task definition and service.
