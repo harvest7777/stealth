@@ -11,3 +11,6 @@ class JobFormSchema(BaseModel):
     save_freq: int = Field(..., gt=0, example=200000)
     log_freq: int = Field(..., gt=0, example=100)
     batch_size: Optional[int] = Field(None, gt=0, example=64)
+
+class RetryJobRequest(BaseModel):
+    job_id: str

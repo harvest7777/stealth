@@ -5,12 +5,10 @@ from supabase import create_client
 from contextlib import asynccontextmanager
 import os
 import boto3
-import time
 import json
 from dotenv import load_dotenv
-from utils import JobFormSchema
+from utils import JobFormSchema, RetryJobRequest
 from supabase_realtime import supabase_realtime_handler
-import modal
 
 # Load environment variables
 load_dotenv()
@@ -30,8 +28,6 @@ sqs = boto3.client(
     region_name=AWS_REGION
 )
 
-
-# app = FastAPI(lifespan=lifespan)
 app = FastAPI() 
 
 app.add_middleware(
@@ -44,6 +40,10 @@ app.add_middleware(
 
 @app.get("/jobs")
 def get_jobs():
+    """
+    RPC endpoint to get all jobs.
+    No auth or RLS check for now. Currently out of scope of this project which just focuses on the training.
+    """
     response = supabase.table("jobs").select("*").execute()
     return response.data
 
@@ -57,11 +57,11 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"WebSocket error: {e}")
 
-
 @app.post("/submit-job")
 def submit_job(form_data: JobFormSchema):
-    # insert job + send queue
-    # return confirmation
+    """
+    RPC endpoint to submit a job. This works by inserting the job into Supabase AND sending it to the queue.
+    """
     data = form_data.model_dump()
     try:
         response = supabase.table("jobs").insert(data).execute()
@@ -79,3 +79,28 @@ def submit_job(form_data: JobFormSchema):
     except Exception as e:
         return {"error": str(e)}
 
+@app.post("/retry-job")
+def retry_job(request: RetryJobRequest):
+    """
+    RPC endpoint to retry a job. This works by just adding the job ID back to the queue.
+    """
+    job_id = request.job_id
+    try:
+        # Fetch the job from Supabase to make sure the job actually exists
+        response = supabase.table("jobs").select("*").eq("id", job_id).single().execute()
+        if not response.data:
+            return {"error": "Job not found"}
+
+        job_data = response.data
+
+        # Resend the job to SQS queue
+        sqs.send_message(
+            QueueUrl=SQS_QUEUE_URL,
+            MessageBody=json.dumps({
+                "job_id": job_id,
+            })
+        )
+        
+        return {"message": "Job successfully sent for retry", "job": job_data}
+    except Exception as e:
+        return {"error": str(e)}
