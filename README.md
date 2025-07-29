@@ -26,14 +26,22 @@ For detailed instructions, refer to the official AWS documentation:
 > Make sure to replace placeholder values in `.env.example` with your actual credentials and configuration.
 
 Additionally, copy the environment varialbes into your ECS instance.
-### Modal Service Deployment
-### Modal Deployment Requirement
 
+### Modal Service Deployment
 To deploy this project using [Modal](https://modal.com/), you must first ensure that the following repository is cloned and correctly set up under your own Modal account:
 
 > [PathOn-AI/awesome-lerobot - modal_training](https://github.com/PathOn-AI/awesome-lerobot/tree/main/modal_training)
 
 This repository contains shared functionality required for job execution.
+
+####After deploying on Modal, you can deploy to AWS.
+1. Build and tag the Docker image.
+2. Push it to Amazon ECR.
+3. Deploy it via ECS using a task definition and service.
+
+For detailed instructions, refer to the official AWS documentation:
+- [Pushing a Docker image to Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html)
+- [Deploying a container on Amazon ECS with Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-tutorial-fargate.html)
 
 Make sure:
 - The repo is accessible from your Modal environment
