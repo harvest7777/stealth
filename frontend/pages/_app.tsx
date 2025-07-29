@@ -1,10 +1,6 @@
 import "@/styles/globals.css";
 import {
   ClerkProvider,
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
 } from "@clerk/nextjs";
 import type { AppProps } from "next/app";
 
@@ -16,13 +12,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         cssLayerName: "clerk",
       }}
     >
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
-      <Component {...pageProps} />
+      <div className="flex flex-col p-5 py-10">
+        <Component {...pageProps} />
+      </div>
     </ClerkProvider>
   );
 }

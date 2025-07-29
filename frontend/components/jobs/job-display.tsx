@@ -50,17 +50,17 @@ export default function JobDisplay({job, className}:props) {
       });
   }
     return (
-        <div className={`flex items-center align-middle ${className}`}>
+        <div className={`flex items-center justify-between align-middle ${className}`}>
+          <div className="md:w-40 w-20">
             {job.upload_repo ? (
-                <Link className="w-2/3 text-cyan-600 underline hover:cursor-pointer" href={`https://huggingface.co/${job.upload_repo}`} target="_blank">
+                <Link className="line-clamp-1 text-cyan-600 underline hover:cursor-pointer" href={`https://huggingface.co/${job.upload_repo}`} target="_blank">
                     <span>{job.policy_name}</span>
                 </Link>
             ):(
-
-                <span className="w-2/3">{job.policy_name}</span>
+                <span className="line-clamp-1">{job.policy_name}</span>
             )}
-        <span className="w-2/3">{job.policy_name}</span>
-        <div className="w-1/3">
+          </div>
+        <div className="w-20">
             <span className={`px-2 rounded-md ${statusColors[job.status].bg} ${statusColors[job.status].text}`}>{job.status}</span>
         </div>
 

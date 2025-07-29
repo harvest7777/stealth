@@ -1,13 +1,11 @@
-import asyncio
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client
-from contextlib import asynccontextmanager
 import os
 import boto3
 import json
 from dotenv import load_dotenv
-from utils import JobFormSchema, RetryJobRequest
+from schemas import JobFormSchema, RetryJobRequest
 from supabase_realtime import supabase_realtime_handler
 
 # Load environment variables

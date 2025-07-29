@@ -4,13 +4,14 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 import { useJobStore } from "@/stores/useJobsStore"
 import { useEffect } from "react"
 import NewJobDialog from "@/components/jobs/new-job-dialog";
+import { BACKEND_DOMAIN } from "@/lib/config";
 export default function ManageJobsPage() {
     const { setJobs, initialized, updateJob } = useJobStore()
 
     // IMPORTANT: may be ws:// or wss:// depending on if you use http or https
     // DO NOT use localhost, use direct IP 127.0.0.1 or the domain
-    const { lastMessage, readyState } = useWebSocket(`ws://127.0.0.1:8000/ws
-    `, {
+
+    const { lastMessage, readyState } = useWebSocket(`ws://${BACKEND_DOMAIN}/ws`, {
         onOpen: () => console.log("✅ Connected to WebSocket"),
         onClose: () => console.log("❌ WebSocket closed"),
         onError: (event) => console.error("WebSocket error:", event),
@@ -52,7 +53,7 @@ export default function ManageJobsPage() {
             </div>
 
             <div className="p-2 outline-1 outline-input rounded-md">
-                <h2 className="font-bold">Your Tools</h2>
+                <h2 className="font-bold">Tools</h2>
                 <NewJobDialog/>
             </div>
 

@@ -9,9 +9,9 @@ export default function JobList ({className}: props ) {
     const {jobs} = useJobStore();
 
     return (
-        <div className={`flex flex-col ${className}`}>
+        <div className={`flex flex-col ${className} justify-center items-center align-middle`}>
             {jobs ? (
-                <ul className="divide-y divide-gray-200">
+                <ul className="divide-y divide-gray-200 w-full">
                     {jobs.map(job => (
                         <JobDisplay className="py-4" key={job.id} job={job} />
                     ))}
